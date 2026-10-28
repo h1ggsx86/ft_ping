@@ -60,6 +60,9 @@ int name_resolution(const char *name, struct sockaddr_in *host)
 
 	freeaddrinfo(results);
 
+	if (print_headerline(*host, name))
+		return EXIT_FAILURE;
+
 	return EXIT_SUCCESS;
 }
 
@@ -68,17 +71,12 @@ int main(int argc, char *argv[])
 	struct sigaction sa;
 	int icmp_socket;
 	int index_hosts;
-	size_t payload;
 
 	conf.s_flag = 1;
+	conf.payload = 56;
 
-	// parsing with getopt_long()
+	// parsing with argp()
 	if (parsing(&index_hosts, argc, argv)) return EXIT_FAILURE;
-
-	if (conf.help) {
-		print_help();
-		return EXIT_SUCCESS;
-	}
 
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = sig_handler;
@@ -91,24 +89,18 @@ int main(int argc, char *argv[])
 	if (icmp_socket == -1)
 		return EXIT_FAILURE;
 
-	for (; argv[index_hosts] != NULL; index_hosts++) {
-		struct sockaddr_in host;
-		const char *str = argv[index_hosts];
-		char ip[INET_ADDRSTRLEN];
+	for (char **tmp_h=conf.hosts; *tmp_h != NULL; tmp_h++) {
+		struct sockaddr_in curr_host;
+		const char *str = *tmp_h;
 
+		if (!conf.s_flag)
+			break;
 	 	// resolve name
-		if (name_resolution(str, &host)) {
+		if (name_resolution(str, &curr_host)) {
 			close(icmp_socket);
-			return EXIT_FAILURE;
-		}
-		if (inet_ntop(AF_INET, &(host.sin_addr), ip, sizeof ip) == NULL) {
-			close(icmp_socket);
-			err("inet_ntop", strerror(errno));
 			return EXIT_FAILURE;
 		}
 
-		printf("PING %s (%s): %zu data bytes\n", str, inet_ntop(AF_INET, &(host.sin_addr), ip, sizeof ip), payload);
-		
 		// BUILD PACKET
 		// while loop/finite with -c
 		// 		sendto()

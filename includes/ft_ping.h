@@ -22,37 +22,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <sysexits.h>
+#include <argp.h>
 
 #include <signal.h>
 
-#define WANTED_BITS (IFF_UP | IFF_RUNNING)
-#define UNWANTED_BITS (IFF_LOOPBACK | IFF_NOARP)
-#define BUFF_SIZE 60
-#define HW_TYPE 1
 #define IPV4_LENGTH 4
-
-typedef int (*t_handler)(const char *arg);
 
 typedef struct s_state {
 	sig_atomic_t s_flag;
+	char **hosts;
 	int verbose;
-	int help;
+	size_t payload;
 } t_state;
-
-typedef struct s_opt_entry {
-	int key;
-	t_handler fn;
-} t_opt_entry;
-
-typedef struct s_hosts {
-	char *data;
-	struct s_hosts *next;
-} t_hosts;
 
 extern volatile t_state conf;
 
 int parsing(int *retval, int argc, char *argv[]);
 int err(const char *str, const char *err_str);
+int print_headerline(struct sockaddr_in host, const char *str);
 void print_help(void);
 
 #endif

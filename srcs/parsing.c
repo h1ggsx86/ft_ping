@@ -1,49 +1,56 @@
 #include "ft_ping.h"
 
-static int opt_verbose(const char *arg)
+const char *argp_program_version = "ft_ping (42 Paris) 0.5\n\nWritten by tnedel.";
+const char *argp_program_bug_address = "Report bugs to <tnedel>";
+
+static char args_doc[] = "HOST ...";
+static char doc[] = "Send ICMP ECHO_REQUEST packets to network hosts.";
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state)
 {
 	(void)arg;
-	conf.verbose = 1;
-	return 0;
-}
+	switch (key)
+	{
+		case 'v':
+			printf("Parsing: %c: verbose option.\n", key);
+			conf.verbose = 1;
+			break;
 
-static int opt_help(const char *arg)
-{
-	(void)arg;
-	conf.help = 1;
-	return 0;
-}
+		case ARGP_KEY_ARGS:
+			conf.hosts = state->argv + state->next;
+			state->next = state->argc;
+			break;
+		case ARGP_KEY_NO_ARGS:
+			argp_error(state, "missing host operand");
+			break;
+		default:
+			return ARGP_ERR_UNKNOWN;
+	}
 
-static int dispatch(t_opt_entry table[], int key, const char *arg)
-{
-	for (int i=0; table[i].fn != NULL; i++)
-		if (table[i].key == key)
-			return table[i].fn(arg);
-	return -1;
+	return 0;
+
 }
 
 int parsing(int *retval, int argc, char *argv[])
 {
-	static t_opt_entry table[] = {
-		{'v', opt_verbose},
-		{'?', opt_help},
-		{0, NULL}
+
+	static struct argp_option options[] = {
+		{"verbose", 'v', NULL, 0, "verbose output", 0},
+		{0}
 	};
-	static struct option longopts[] = {
-		{"verbose", no_argument, NULL, 'v'},
-		{"help", no_argument, NULL, '?'},
-		{NULL, 0, NULL, 0}
-	};	
 
-	int c;
-	while ((c = getopt_long(argc, argv, "v?", longopts, 0)) != -1) {
-		if (dispatch(table, c, optarg) < 0)
-			return 1;
-	}
+	struct argp _argp;
+	memset(&_argp, 0, sizeof(_argp));
+	_argp.options = options;
+	_argp.parser = parse_opt;
+	_argp.args_doc = args_doc;
+	_argp.doc = doc;
 
-	printf("Arguments: %s\n", argv[optind]);
+	if (argp_parse(&_argp, argc, argv, 0, 0, NULL) != 0)
+		return EXIT_FAILURE;
 
-	*retval = optind;
-	
+
+	(void)retval;
+
 	return EXIT_SUCCESS;
 }

@@ -44,4 +44,11 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+cap: $(NAME)
+	sudo setcap cap_net_raw+ep $(NAME)
+
+decap: $(NAME)
+	sudo setcap cap_net_raw-ep $(NAME)
+
+
+.PHONY: all clean fclean re cap decap

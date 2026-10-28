@@ -15,3 +15,17 @@ void print_help(void)
 			"Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options.\n\n"
 		);
 }
+
+int print_headerline(struct sockaddr_in host, const char *str)
+{
+	char ip[INET_ADDRSTRLEN];
+
+	if (inet_ntop(AF_INET, &(host.sin_addr), ip, sizeof ip) == NULL)
+	{
+		err("inet_ntop", strerror(errno));
+		return EXIT_FAILURE;
+	}
+
+	printf("PING %s (%s): %zu data bytes\n", str, ip, conf.payload);
+	return EXIT_SUCCESS;
+}
