@@ -29,3 +29,11 @@ int print_headerline(struct sockaddr_in host, const char *str)
 	printf("PING %s (%s): %zu data bytes\n", str, ip, conf.payload);
 	return EXIT_SUCCESS;
 }
+
+long long now_us(void)
+{
+	struct timeval tv;
+
+	gettimeofday(&tv, NULL);
+	return (long long)tv.tv_sec * 1000000LL + tv.tv_usec;
+}
