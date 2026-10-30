@@ -37,3 +37,40 @@ long long now_us(void)
 	gettimeofday(&tv, NULL);
 	return (long long)tv.tv_sec * 1000000LL + tv.tv_usec;
 }
+
+void print_stat(const char *name, t_data stat)
+{
+	if (stat.pkt_send <= 0)
+		return;
+	int p = ((stat.pkt_send - stat.pkt_recv) / stat.pkt_send) * 100;
+	double avg = stat.rtt_sum / stat.pkt_recv;
+
+	printf("--- %s ping statistics ---\n", name);
+	printf("%d packets transmitted, "
+			"%d packets received, "
+			"%d%% packet loss\n", stat.pkt_send, stat.pkt_recv, p);
+	printf("round-trip min/avg/max/stddev = ");
+	printf("%.3f/%.3f/%.3f/%.3f ms\n", stat.rtt_min, avg,
+									stat.rtt_max, sqrt(stat.rtt_sum_sqr / stat.pkt_recv - (avg * avg)));
+}
+
+double sqrt(double num)
+{
+	double next;
+	double diff;
+	double x;
+
+	if (num <= 0.0)
+		return 0.0;
+	x = num;
+	for (int i=0; i < 100; i++) {
+		next = (x + num / x) / 2.0;
+		diff = next - x;
+		if (diff < 0)
+			diff = -diff;
+		x = next;
+		if (diff < 1e-9)
+			return x;
+	}
+	return x;
+}

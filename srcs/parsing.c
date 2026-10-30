@@ -15,6 +15,11 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 			printf("Parsing: %c: verbose option.\n", key);
 			conf.verbose = 1;
 			break;
+		case 'c':
+			char *end;
+			int c = strtol(arg, &end, 10);
+			(void)c;
+			break;
 
 		case ARGP_KEY_ARGS:
 			conf.hosts = state->argv + state->next;
@@ -31,11 +36,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 
 }
 
-int parsing(int *retval, int argc, char *argv[])
+int parsing(int argc, char *argv[])
 {
 
 	static struct argp_option options[] = {
-		{"verbose", 'v', NULL, 0, "verbose output", 0},
+		{"verbose", 'v', NULL,     0, "verbose output", 0},
+		{"count",   'c', "NUMBER", 0, "stop after sending NUMBER packets", 0},
 		{0}
 	};
 
@@ -48,9 +54,6 @@ int parsing(int *retval, int argc, char *argv[])
 
 	if (argp_parse(&_argp, argc, argv, 0, 0, NULL) != 0)
 		return EXIT_FAILURE;
-
-
-	(void)retval;
 
 	return EXIT_SUCCESS;
 }
